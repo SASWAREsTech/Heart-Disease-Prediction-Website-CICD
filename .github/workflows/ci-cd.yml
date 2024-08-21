@@ -1,0 +1,44 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'  # or your preferred version
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run tests
+      run: |
+        # Run your tests here
+        # e.g., pytest
+
+    - name: Build Docker image
+      run: |
+        docker build -t your-docker-image-name .
+
+    - name: Push Docker image to Azure Container Registry
+      env:
+        AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+      run: |
+        echo $AZURE_CREDENTIALS | docker login youracr.azurecr.io --username ${{ secrets.AZURE_USERNAME }} --password-stdin
+        docker tag your-docker-image-name youracr.azurecr.io/your-docker-image-name
+        docker push youracr.azurecr.io/your-docker-image-name
